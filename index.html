@@ -1027,10 +1027,13 @@
                         document.getElementById('modal-urgent').classList.remove('hidden');
                     }
                 },
-                async addToCalendar(title, dateStr) {
+                addToCalendar(title, dateStr) {
                     if (!dateStr) return app.utils.toast('无日期，无法添加到日历', 'error');
-                    
-                    // Simple ICS generation
+
+                    // 1. Toast Feedback
+                    app.utils.toast("正在调起日历... 如无反应，请尝试使用系统自带浏览器打开。");
+
+                    // 2. Generate ICS Content
                     const date = dateStr.replace(/-/g, '');
                     const icsContent = [
                         'BEGIN:VCALENDAR',
@@ -1043,35 +1046,13 @@
                         'END:VCALENDAR'
                     ].join('\n');
 
-                    const file = new File([icsContent], "reminder.ics", { type: "text/calendar" });
+                    // 3. Create Data URI
+                    const uri = "data:text/calendar;charset=utf8," + encodeURIComponent(icsContent);
 
-                    const triggerDownload = () => {
-                        const url = window.URL.createObjectURL(file);
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.setAttribute('download', 'reminder.ics');
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        window.URL.revokeObjectURL(url);
-                        app.utils.toast("下载成功！请在'文件'中点击打开，即可同步至系统日历。");
-                    };
-
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        try {
-                            await navigator.share({
-                                files: [file],
-                                title: '添加日程',
-                                text: title
-                            });
-                            app.utils.toast('日程已分享');
-                        } catch (err) {
-                            if (err.name !== 'AbortError') {
-                                triggerDownload();
-                            }
-                        }
-                    } else {
-                        triggerDownload();
+                    // 4. Execution (Open vs Location)
+                    const newWindow = window.open(uri);
+                    if (!newWindow) {
+                        window.location.href = uri;
                     }
                 }
             }
