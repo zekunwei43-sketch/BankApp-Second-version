@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bank CRM Pro</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            850: '#15202e',
+                            950: '#020617',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0f172a; /* slate-900 */
+            color: #f8fafc; /* slate-50 */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569; 
+        }
+
+        .card-enter {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Hide number input arrows */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+
+        .completed-task {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+        .completed-task h4 {
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Navigation -->
+    <header class="bg-slate-800/80 backdrop-blur-md border-b border-slate-700 px-4 py-3 flex justify-between items-center sticky top-0 z-20">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-building-columns text-blue-500 text-xl"></i>
+            <h1 class="text-lg font-bold tracking-wide">Bank CRM <span class="text-xs font-normal text-slate-400">Pro</span></h1>
+        </div>
+        <button id="ai-trigger-btn" class="bg-blue-600 hover:bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/20 transition-all">
+            <i class="fa-solid fa-robot text-sm"></i>
+        </button>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto pb-24 p-4 scroll-smooth" id="main-container">
+        
+        <!-- View: Dashboard -->
+        <section id="view-dashboard" class="space-y-6 card-enter">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm">
+                    <p class="text-slate-400 text-xs mb-1">总管理资产 (Assets)</p>
+                    <h2 class="text-2xl font-bold text-emerald-400" id="dash-total-assets">¥0</h2>
+                </div>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm">
+                    <p class="text-slate-400 text-xs mb-1">客户总数 (Clients)</p>
+                    <h2 class="text-2xl font-bold text-blue-400" id="dash-total-clients">0</h2>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-blue-900/40 to-slate-800 p-5 rounded-xl border border-blue-800/50 flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-lg text-white">今日待办</h3>
+                    <p class="text-slate-400 text-sm mt-1" id="dash-reminder-count">暂无待办事项</p>
+                </div>
+                <div class="bg-blue-500/20 p-3 rounded-full">
+                    <i class="fa-regular fa-bell text-blue-400 text-xl"></i>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div>
+                <h3 class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-3">快捷操作</h3>
+                <div class="grid grid-cols-4 gap-2 text-center">
+                    <button onclick="app.modals.openClient()" class="flex flex-col items-center gap-2 p-3 bg-slate-800 rounded-xl active:scale-95 transition-transform">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400"><i class="fa-solid fa-user-plus"></i></div>
+                        <span class="text-xs text-slate-300">加客户</span>
+                    </button>
+                    <button onclick="app.modals.openReminder()" class="flex flex-col items-center gap-2 p-3 bg-slate-800 rounded-xl active:scale-95 transition-transform">
+                        <div class="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-400"><i class="fa-solid fa-clock"></i></div>
+                        <span class="text-xs text-slate-300">加提醒</span>
+                    </button>
+                    <button onclick="app.speech.start()" class="flex flex-col items-center gap-2 p-3 bg-slate-800 rounded-xl active:scale-95 transition-transform">
+                        <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400"><i class="fa-solid fa-microphone"></i></div>
+                        <span class="text-xs text-slate-300">语音</span>
+                    </button>
+                    <button onclick="app.nav.to('settings')" class="flex flex-col items-center gap-2 p-3 bg-slate-800 rounded-xl active:scale-95 transition-transform">
+                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-400"><i class="fa-solid fa-gear"></i></div>
+                        <span class="text-xs text-slate-300">设置</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- View: Clients -->
+        <section id="view-clients" class="hidden space-y-4">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-xl font-bold">客户列表</h2>
+                <button onclick="app.modals.openClient()" class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-500">+ 新增</button>
+            </div>
+            <div id="client-list" class="space-y-3 pb-20">
+                <!-- Client Cards Injected Here -->
+            </div>
+        </section>
+
+        <!-- View: Reminders -->
+        <section id="view-reminders" class="hidden space-y-4">
+            <div class="flex flex-col gap-4 mb-2">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xl font-bold">业务提醒</h2>
+                    <button onclick="app.modals.openReminder()" class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-500">+ 新增</button>
+                </div>
+                <!-- Search Bar -->
+                <div class="relative">
+                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                    <input type="text" id="reminder-search-input" oninput="app.render.reminders()" placeholder="搜索业务内容..." 
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                </div>
+            </div>
+
+            <div id="reminder-list" class="space-y-3 pb-20">
+                <!-- Reminder Cards Injected Here -->
+            </div>
+        </section>
+
+        <!-- View: Settings -->
+        <section id="view-settings" class="hidden space-y-6">
+            <h2 class="text-xl font-bold mb-4">系统设置</h2>
+            
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-4 space-y-4">
+                <h3 class="font-semibold text-blue-400 flex items-center gap-2">
+                    <i class="fa-solid fa-brain"></i> AI 配置 (DeepSeek)
+                </h3>
+                
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">DeepSeek API Key</label>
+                    <input type="password" id="setting-api-key" placeholder="Paste your DeepSeek Key here (sk-...)" 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500">
+                </div>
+                <button onclick="app.settings.save()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-medium transition-colors">
+                    保存配置
+                </button>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-4 space-y-4">
+                <h3 class="font-semibold text-slate-200">数据管理</h3>
+                <button onclick="app.data.seed()" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded-lg text-sm transition-colors">
+                    重置并填入测试数据
+                </button>
+                <button onclick="localStorage.clear(); window.location.reload()" class="w-full bg-red-900/30 hover:bg-red-900/50 text-red-400 py-2 rounded-lg text-sm transition-colors border border-red-900/50">
+                    清除所有数据
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-800/95 backdrop-blur-lg border-t border-slate-700 pb-safe pt-2 z-30">
+        <div class="flex justify-around items-center h-16">
+            <button onclick="app.nav.to('dashboard')" class="nav-btn active flex flex-col items-center gap-1 w-full text-blue-500" data-target="dashboard">
+                <i class="fa-solid fa-chart-pie text-xl mb-0.5"></i>
+                <span class="text-[10px]">概览</span>
+            </button>
+            <button onclick="app.nav.to('clients')" class="nav-btn flex flex-col items-center gap-1 w-full text-slate-500 hover:text-slate-300" data-target="clients">
+                <i class="fa-solid fa-users text-xl mb-0.5"></i>
+                <span class="text-[10px]">客户</span>
+            </button>
+            <button onclick="app.nav.to('reminders')" class="nav-btn flex flex-col items-center gap-1 w-full text-slate-500 hover:text-slate-300" data-target="reminders">
+                <i class="fa-solid fa-list-check text-xl mb-0.5"></i>
+                <span class="text-[10px]">提醒</span>
+            </button>
+            <button onclick="app.nav.to('settings')" class="nav-btn flex flex-col items-center gap-1 w-full text-slate-500 hover:text-slate-300" data-target="settings">
+                <i class="fa-solid fa-gear text-xl mb-0.5"></i>
+                <span class="text-[10px]">设置</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Modal: Urgent Alert (App Launch) -->
+    <div id="modal-urgent" class="fixed inset-0 z-[100] hidden bg-slate-900/95 backdrop-blur-sm flex flex-col items-center justify-center p-6">
+        <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-red-500/50 shadow-2xl shadow-red-900/20 overflow-hidden animate-[slideUp_0.4s_ease-out]">
+            <div class="bg-red-900/30 p-4 border-b border-red-900/50 flex items-center gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-red-500 text-xl"></i>
+                <h3 class="font-bold text-red-100 text-lg">紧急业务提醒</h3>
+            </div>
+            <div class="p-5 max-h-[60vh] overflow-y-auto space-y-3" id="urgent-list-container">
+                <!-- Urgent Items injected here -->
+            </div>
+            <div class="p-4 bg-slate-800 border-t border-slate-700">
+                <button onclick="document.getElementById('modal-urgent').classList.add('hidden')" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-red-600/20 transition-all">
+                    我知道了
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Client Edit/Add -->
+    <div id="modal-client" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 modal-overlay" onclick="app.modals.close('client')"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="px-5 py-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
+                <h3 class="text-lg font-bold text-white" id="modal-client-title">编辑客户</h3>
+                <button onclick="app.modals.close('client')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-5 overflow-y-auto space-y-4 custom-scrollbar">
+                <input type="hidden" id="client-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">姓名 <span class="text-red-400">*</span></label>
+                        <input type="text" id="client-name" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">职位</label>
+                        <input type="text" id="client-role" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">公司名称</label>
+                    <input type="text" id="client-company" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">身份证号</label>
+                    <input type="text" id="client-idcard" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">资金资产 (¥)</label>
+                    <input type="number" id="client-assets" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">喜好</label>
+                    <input type="text" id="client-hobbies" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">备注</label>
+                    <textarea id="client-remarks" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none"></textarea>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-700 bg-slate-800/50 flex gap-3">
+                <button type="button" id="btn-delete-client" class="hidden px-4 py-2 bg-red-900/20 text-red-400 rounded-lg text-sm border border-red-900/50 hover:bg-red-900/40">删除</button>
+                <div class="flex-1"></div>
+                <button type="button" onclick="app.modals.close('client')" class="px-4 py-2 text-slate-300 text-sm hover:text-white">取消</button>
+                <button type="button" onclick="app.data.saveClientFromModal()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-blue-600/20">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Reminder Edit/Add -->
+    <div id="modal-reminder" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 modal-overlay" onclick="app.modals.close('reminder')"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden flex flex-col">
+            <div class="px-5 py-4 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-white" id="modal-reminder-title">新增提醒</h3>
+                <button onclick="app.modals.close('reminder')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-5 space-y-4">
+                <input type="hidden" id="reminder-id">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">事项描述 <span class="text-red-400">*</span></label>
+                    <input type="text" id="reminder-desc" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">日期</label>
+                        <input type="date" id="reminder-date" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none text-white [color-scheme:dark]">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">金额 (CNY)</label>
+                        <input type="number" id="reminder-amount" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">类型</label>
+                    <select id="reminder-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none text-white">
+                        <option value="business">业务办理</option>
+                        <option value="meeting">客户会议</option>
+                        <option value="call">电话回访</option>
+                        <option value="other">其他事项</option>
+                    </select>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-700 flex gap-3">
+                <button type="button" id="btn-delete-reminder" class="hidden px-4 py-2 bg-red-900/20 text-red-400 rounded-lg text-sm border border-red-900/50 hover:bg-red-900/40">删除</button>
+                <div class="flex-1"></div>
+                <button type="button" onclick="app.modals.close('reminder')" class="px-4 py-2 text-slate-300 text-sm hover:text-white">取消</button>
+                <button type="button" onclick="app.data.saveReminderFromModal()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-blue-600/20">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: AI Assistant -->
+    <div id="modal-ai" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 modal-overlay" onclick="app.modals.close('ai')"></div>
+        <div class="absolute bottom-0 left-0 right-0 bg-slate-850 rounded-t-3xl shadow-2xl border-t border-slate-700 p-6 pb-safe animate-[slideUp_0.3s_ease-out]">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center">
+                        <i class="fa-solid fa-sparkles text-white text-xs"></i>
+                    </div>
+                    <h3 class="font-bold text-lg">AI 助手</h3>
+                </div>
+                <button onclick="app.modals.close('ai')" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="bg-slate-900 rounded-xl p-3 border border-slate-700 mb-4">
+                <textarea id="ai-input-text" rows="3" placeholder="请说话或输入... (例如: 删除客户王建国)" class="w-full bg-transparent text-white text-sm focus:outline-none resize-none placeholder-slate-600"></textarea>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <button id="btn-mic" onmousedown="app.speech.startRec()" onmouseup="app.speech.stopRec()" ontouchstart="app.speech.startRec()" ontouchend="app.speech.stopRec()" 
+                    class="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800 border border-slate-700 text-slate-300 active:bg-blue-900/50 active:border-blue-500 active:text-blue-400 transition-all select-none">
+                    <i class="fa-solid fa-microphone"></i>
+                    <span class="text-xs font-medium" id="mic-status">按住说话</span>
+                </button>
+                
+                <button onclick="app.ai.process()" id="btn-ai-send" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg shadow-blue-600/20 flex items-center gap-2 transition-all">
+                    <span>发送指令</span>
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-600 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none z-[60]">
+        <i class="fa-solid fa-circle-check text-green-400 text-lg" id="toast-icon"></i>
+        <span class="text-sm font-medium" id="toast-message">Operation Successful</span>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        const app = {
+            state: {
+                clients: [],
+                reminders: [],
+                settings: {
+                    apiKey: ''
+                }
+            },
+
+            init() {
+                this.data.load();
+                this.utils.checkUrgentAlert();
+                this.render.all();
+                this.events.setup();
+                
+                // Initialize default view
+                this.nav.to('dashboard');
+            },
+
+            events: {
+                setup() {
+                    document.getElementById('ai-trigger-btn').addEventListener('click', () => app.modals.open('ai'));
+                    
+                    // Close modals on Esc
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') {
+                            app.modals.close('client');
+                            app.modals.close('reminder');
+                            app.modals.close('ai');
+                        }
+                    });
+                }
+            },
+
+            data: {
+                load() {
+                    const c = localStorage.getItem('bank_clients');
+                    const r = localStorage.getItem('bank_reminders');
+                    const s = localStorage.getItem('bank_settings');
+                    
+                    if (c) app.state.clients = JSON.parse(c);
+                    if (r) app.state.reminders = JSON.parse(r);
+                    if (s) {
+                        app.state.settings = JSON.parse(s);
+                        document.getElementById('setting-api-key').value = app.state.settings.apiKey || '';
+                    }
+                },
+                
+                save() {
+                    localStorage.setItem('bank_clients', JSON.stringify(app.state.clients));
+                    localStorage.setItem('bank_reminders', JSON.stringify(app.state.reminders));
+                    app.render.all();
+                },
+
+                seed() {
+                    app.state.clients = [
+                        { id: 1, name: "王建国", company: "建国物流集团", role: "董事长", idcard: "110101197001011234", assets: 50000000, hobbies: "高尔夫, 茶道", remarks: "VIP客户，喜欢喝普洱" },
+                        { id: 2, name: "李素芬", company: "美好餐饮连锁", role: "总经理", idcard: "310101198205055678", assets: 8500000, hobbies: "旅游", remarks: "有意向做家族信托" },
+                        { id: 3, name: "张伟", company: "未来科技", role: "CTO", idcard: "440101199012129999", assets: 12000000, hobbies: "滑雪, 编程", remarks: "年轻新贵，关注科技股" }
+                    ];
+                    // Create some urgent and non-urgent data
+                    const today = new Date().toISOString().split('T')[0];
+                    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+                    
+                    app.state.reminders = [
+                        { id: 1, desc: "王总 - 大额存单到期确认", date: today, amount: 5000000, type: "business", status: "pending" },
+                        { id: 2, desc: "李总 - 家族信托方案沟通会", date: tomorrow, amount: 0, type: "meeting", status: "pending" },
+                        { id: 3, desc: "张伟 - 科技股投资建议书", date: "2023-12-01", amount: 200000, type: "other", status: "completed" }
+                    ];
+                    this.save();
+                    app.utils.toast('测试数据已导入');
+                },
+
+                addClient(data) {
+                    const newClient = { id: Date.now(), ...data };
+                    app.state.clients.unshift(newClient);
+                    app.data.save();
+                    return newClient;
+                },
+
+                updateClient(id, data) {
+                    const idx = app.state.clients.findIndex(c => c.id == id);
+                    if (idx > -1) {
+                        app.state.clients[idx] = { ...app.state.clients[idx], ...data };
+                        app.data.save();
+                    }
+                },
+
+                deleteClient(id) {
+                    app.state.clients = app.state.clients.filter(c => c.id != id);
+                    app.data.save();
+                },
+
+                saveClientFromModal() {
+                    const id = document.getElementById('client-id').value;
+                    const data = {
+                        name: document.getElementById('client-name').value,
+                        company: document.getElementById('client-company').value,
+                        role: document.getElementById('client-role').value,
+                        idcard: document.getElementById('client-idcard').value,
+                        assets: parseFloat(document.getElementById('client-assets').value) || 0,
+                        hobbies: document.getElementById('client-hobbies').value,
+                        remarks: document.getElementById('client-remarks').value
+                    };
+
+                    if(!data.name) return app.utils.toast('请输入姓名', 'error');
+
+                    if (id) {
+                        app.data.updateClient(id, data);
+                        app.utils.toast('客户信息已更新');
+                    } else {
+                        app.data.addClient(data);
+                        app.utils.toast('新客户已添加');
+                    }
+                    app.modals.close('client');
+                },
+
+                addReminder(data) {
+                    // Force default status
+                    const newReminder = { id: Date.now(), status: 'pending', ...data };
+                    app.state.reminders.unshift(newReminder);
+                    app.data.save();
+                    return newReminder;
+                },
+
+                updateReminder(id, data) {
+                    const idx = app.state.reminders.findIndex(r => r.id == id);
+                    if (idx > -1) {
+                        app.state.reminders[idx] = { ...app.state.reminders[idx], ...data };
+                        app.data.save();
+                    }
+                },
+
+                toggleReminderStatus(id) {
+                    const idx = app.state.reminders.findIndex(r => r.id == id);
+                    if (idx > -1) {
+                        const current = app.state.reminders[idx];
+                        current.status = current.status === 'completed' ? 'pending' : 'completed';
+                        app.data.save();
+                        app.utils.toast(current.status === 'completed' ? '已标记为完成' : '已恢复为待办');
+                    }
+                },
+
+                deleteReminder(id) {
+                    app.state.reminders = app.state.reminders.filter(r => r.id != id);
+                    app.data.save();
+                },
+
+                saveReminderFromModal() {
+                    const id = document.getElementById('reminder-id').value;
+                    const data = {
+                        desc: document.getElementById('reminder-desc').value,
+                        date: document.getElementById('reminder-date').value,
+                        amount: parseFloat(document.getElementById('reminder-amount').value) || 0,
+                        type: document.getElementById('reminder-type').value,
+                        // Preserve existing status if updating, else pending
+                    };
+
+                    if(!data.desc) return app.utils.toast('请输入描述', 'error');
+
+                    if (id) {
+                        app.data.updateReminder(id, data);
+                        app.utils.toast('提醒已更新');
+                    } else {
+                        data.status = 'pending';
+                        app.data.addReminder(data);
+                        app.utils.toast('新提醒已添加');
+                    }
+                    app.modals.close('reminder');
+                }
+            },
+
+            nav: {
+                to(viewId) {
+                    // Update content visibility
+                    document.querySelectorAll('main > section').forEach(el => el.classList.add('hidden'));
+                    const target = document.getElementById(`view-${viewId}`);
+                    target.classList.remove('hidden');
+                    if(target.classList.contains('card-enter')) {
+                        // Re-trigger animation
+                        target.classList.remove('card-enter');
+                        void target.offsetWidth; 
+                        target.classList.add('card-enter');
+                    }
+
+                    // Update nav buttons
+                    document.querySelectorAll('.nav-btn').forEach(btn => {
+                        if (btn.dataset.target === viewId) {
+                            btn.classList.add('text-blue-500');
+                            btn.classList.remove('text-slate-500');
+                        } else {
+                            btn.classList.remove('text-blue-500');
+                            btn.classList.add('text-slate-500');
+                        }
+                    });
+                }
+            },
+
+            modals: {
+                open(name) {
+                    document.getElementById(`modal-${name}`).classList.remove('hidden');
+                },
+                close(name) {
+                    document.getElementById(`modal-${name}`).classList.add('hidden');
+                },
+                openClient(id = null) {
+                    const modalTitle = document.getElementById('modal-client-title');
+                    const btnDel = document.getElementById('btn-delete-client');
+                    
+                    if (id) {
+                        const client = app.state.clients.find(c => c.id == id);
+                        if (!client) return;
+                        
+                        modalTitle.innerText = '编辑客户';
+                        document.getElementById('client-id').value = client.id;
+                        document.getElementById('client-name').value = client.name || '';
+                        document.getElementById('client-company').value = client.company || '';
+                        document.getElementById('client-role').value = client.role || '';
+                        document.getElementById('client-idcard').value = client.idcard || '';
+                        document.getElementById('client-assets').value = client.assets || '';
+                        document.getElementById('client-hobbies').value = client.hobbies || '';
+                        document.getElementById('client-remarks').value = client.remarks || '';
+                        
+                        btnDel.classList.remove('hidden');
+                        btnDel.onclick = () => {
+                            if(confirm('确定删除该客户吗？')) {
+                                app.data.deleteClient(id);
+                                app.modals.close('client');
+                                app.utils.toast('客户已删除');
+                            }
+                        };
+                    } else {
+                        modalTitle.innerText = '新增客户';
+                        document.getElementById('client-id').value = '';
+                        document.querySelectorAll('#modal-client input:not([type=hidden]), #modal-client textarea').forEach(i => i.value = '');
+                        btnDel.classList.add('hidden');
+                    }
+                    this.open('client');
+                },
+                openReminder(id = null) {
+                    const modalTitle = document.getElementById('modal-reminder-title');
+                    const btnDel = document.getElementById('btn-delete-reminder');
+                    
+                    if (id) {
+                        const rem = app.state.reminders.find(r => r.id == id);
+                        if (!rem) return;
+                        
+                        modalTitle.innerText = '编辑提醒';
+                        document.getElementById('reminder-id').value = rem.id;
+                        document.getElementById('reminder-desc').value = rem.desc || '';
+                        document.getElementById('reminder-date').value = rem.date || '';
+                        document.getElementById('reminder-amount').value = rem.amount || '';
+                        document.getElementById('reminder-type').value = rem.type || 'business';
+
+                        btnDel.classList.remove('hidden');
+                        btnDel.onclick = () => {
+                            if(confirm('确定删除该提醒吗？')) {
+                                app.data.deleteReminder(id);
+                                app.modals.close('reminder');
+                                app.utils.toast('提醒已删除');
+                            }
+                        };
+                    } else {
+                        modalTitle.innerText = '新增提醒';
+                        document.getElementById('reminder-id').value = '';
+                        document.querySelectorAll('#modal-reminder input:not([type=hidden])').forEach(i => i.value = '');
+                        // Default date to today
+                        document.getElementById('reminder-date').valueAsDate = new Date();
+                        btnDel.classList.add('hidden');
+                    }
+                    this.open('reminder');
+                }
+            },
+
+            render: {
+                all() {
+                    this.dashboard();
+                    this.clients();
+                    this.reminders();
+                },
+                dashboard() {
+                    const totalAssets = app.state.clients.reduce((sum, c) => sum + (Number(c.assets) || 0), 0);
+                    document.getElementById('dash-total-assets').innerText = app.utils.formatCurrency(totalAssets);
+                    document.getElementById('dash-total-clients').innerText = app.state.clients.length;
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    const todayReminders = app.state.reminders.filter(r => r.date === today && r.status !== 'completed').length;
+                    document.getElementById('dash-reminder-count').innerText = todayReminders > 0 ? `今天有 ${todayReminders} 项待办` : '今天暂无待办事项';
+                },
+                clients() {
+                    const list = document.getElementById('client-list');
+                    list.innerHTML = '';
+                    app.state.clients.forEach(c => {
+                        const div = document.createElement('div');
+                        div.className = 'bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm active:bg-slate-700 transition-colors cursor-pointer relative';
+                        div.onclick = () => app.modals.openClient(c.id);
+                        div.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h3 class="font-bold text-lg text-white">${c.name}</h3>
+                                        ${c.role ? `<span class="bg-blue-900/50 text-blue-400 text-[10px] px-2 py-0.5 rounded-full border border-blue-900">${c.role}</span>` : ''}
+                                    </div>
+                                    <p class="text-slate-400 text-xs">${c.company || '未填写公司信息'}</p>
+                                </div>
+                                <div class="flex flex-col items-end gap-2">
+                                    <p class="text-emerald-400 font-medium text-sm">${app.utils.formatCurrency(c.assets)}</p>
+                                    <button onclick="event.stopPropagation(); window.deleteClient(${c.id})" class="text-slate-600 hover:text-red-400 z-10 p-1">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        list.appendChild(div);
+                    });
+                    if (app.state.clients.length === 0) list.innerHTML = `<div class="text-center text-slate-500 py-10">暂无客户</div>`;
+                },
+                reminders() {
+                    const list = document.getElementById('reminder-list');
+                    const search = document.getElementById('reminder-search-input').value.toLowerCase();
+                    list.innerHTML = '';
+                    
+                    // Filter
+                    let items = app.state.reminders.filter(r => 
+                        !search || (r.desc && r.desc.toLowerCase().includes(search))
+                    );
+
+                    // Sort: Pending first, then by date. Completed last.
+                    items.sort((a, b) => {
+                        if (a.status !== b.status) {
+                            return a.status === 'completed' ? 1 : -1;
+                        }
+                        return new Date(a.date) - new Date(b.date);
+                    });
+
+                    items.forEach(r => {
+                        const isCompleted = r.status === 'completed';
+                        const isUrgent = app.utils.isUrgent(r.date) && !isCompleted;
+
+                        const div = document.createElement('div');
+                        let classes = 'bg-slate-800 p-4 rounded-xl border shadow-sm flex flex-col gap-2 relative transition-all ';
+                        
+                        if (isCompleted) {
+                            classes += 'border-slate-700 completed-task';
+                        } else if (isUrgent) {
+                            classes += 'border-red-500 bg-red-900/10 shadow-red-900/10';
+                        } else {
+                            classes += 'border-slate-700';
+                        }
+                        
+                        div.className = classes;
+                        
+                        const typeIcons = { business: 'briefcase', meeting: 'handshake', call: 'phone', other: 'note-sticky' };
+                        const icon = typeIcons[r.type] || 'circle';
+                        const iconColor = isUrgent ? 'text-red-400' : 'text-slate-400';
+                        const iconBg = isUrgent ? 'bg-red-900/30' : 'bg-slate-700';
+
+                        div.innerHTML = `
+                            <div class="flex justify-between items-start" onclick="app.modals.openReminder(${r.id})">
+                                <div class="flex items-start gap-3">
+                                    <div class="mt-1 w-8 h-8 rounded-full ${iconBg} flex items-center justify-center ${iconColor}">
+                                        <i class="fa-solid fa-${icon} text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-200 text-sm leading-snug mb-1 ${isUrgent ? 'text-red-400' : ''}">
+                                            ${isUrgent ? '<span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded mr-1">紧急</span>' : ''}
+                                            ${r.desc}
+                                        </h4>
+                                        <p class="text-slate-500 text-xs">${r.date || '无日期'}</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-end gap-2">
+                                    ${r.amount > 0 ? `<div class="text-right"><span class="block font-bold text-amber-400 text-sm">¥${app.utils.formatNumberCompact(r.amount)}</span></div>` : ''}
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="event.stopPropagation(); window.toggleReminderStatus(${r.id})" class="${isCompleted ? 'text-green-500' : 'text-slate-600 hover:text-green-400'} z-10 p-1">
+                                            <i class="fa-solid ${isCompleted ? 'fa-circle-check' : 'fa-circle'} text-lg"></i>
+                                        </button>
+                                        <button onclick="event.stopPropagation(); window.deleteReminder(${r.id})" class="text-slate-600 hover:text-red-400 z-10 p-1">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            ${!isCompleted ? `
+                            <div class="border-t border-slate-700/50 pt-2 mt-1 flex justify-end">
+                                <button onclick="app.utils.addToCalendar('${r.desc}', '${r.date}')" class="text-xs text-blue-400 flex items-center gap-1 px-2 py-1 hover:bg-slate-700 rounded transition-colors">
+                                    <i class="fa-regular fa-calendar-plus"></i> 加入日历
+                                </button>
+                            </div>` : ''}
+                        `;
+                        list.appendChild(div);
+                    });
+                    if (items.length === 0) list.innerHTML = `<div class="text-center text-slate-500 py-10">暂无提醒</div>`;
+                }
+            },
+
+            settings: {
+                save() {
+                    const apiKey = document.getElementById('setting-api-key').value.trim();
+                    app.state.settings = { apiKey };
+                    localStorage.setItem('bank_settings', JSON.stringify(app.state.settings));
+                    app.utils.toast('设置已保存');
+                }
+            },
+
+            speech: {
+                recognition: null,
+                startRec() {
+                    const btn = document.getElementById('btn-mic');
+                    const status = document.getElementById('mic-status');
+                    btn.classList.add('bg-red-500/20', 'border-red-500', 'text-red-500');
+                    status.innerText = "正在聆听...";
+                    
+                    if ('webkitSpeechRecognition' in window) {
+                        this.recognition = new webkitSpeechRecognition();
+                        this.recognition.lang = 'zh-CN';
+                        this.recognition.continuous = false;
+                        this.recognition.interimResults = false;
+                        
+                        this.recognition.onresult = (event) => {
+                            const text = event.results[0][0].transcript;
+                            const input = document.getElementById('ai-input-text');
+                            input.value += (input.value ? ' ' : '') + text;
+                        };
+                        
+                        this.recognition.onerror = (e) => {
+                            console.error(e);
+                            app.utils.toast('语音识别错误', 'error');
+                            this.stopRec();
+                        };
+                        
+                        this.recognition.onend = () => {
+                            this.stopRec();
+                        }
+
+                        this.recognition.start();
+                    } else {
+                        app.utils.toast('您的浏览器不支持语音识别', 'error');
+                        this.stopRec();
+                    }
+                },
+                stopRec() {
+                    const btn = document.getElementById('btn-mic');
+                    const status = document.getElementById('mic-status');
+                    btn.classList.remove('bg-red-500/20', 'border-red-500', 'text-red-500');
+                    status.innerText = "按住说话";
+                    if (this.recognition) {
+                        this.recognition.stop();
+                    }
+                },
+                start() {
+                    // Quick access from dashboard
+                    app.modals.open('ai');
+                    // setTimeout(() => this.startRec(), 500); // Optional: auto start
+                }
+            },
+
+            ai: {
+                async process() {
+                    const text = document.getElementById('ai-input-text').value;
+                    if (!text) return app.utils.toast('请输入内容', 'error');
+
+                    const btn = document.getElementById('btn-ai-send');
+                    const originalBtnContent = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 处理中...`;
+
+                    const API_URL = "https://api.deepseek.com/chat/completions";
+                    const { apiKey } = app.state.settings;
+                    
+                    // Construct System Prompt
+                    const systemPrompt = `You are a CRM Data Extraction Assistant. 
+                    Extract entities from the user's text into a JSON object.
+                    
+                    Supported Intents: 
+                    1. 'add_client'
+                    2. 'add_reminder'
+                    3. 'delete_client'
+                    4. 'delete_reminder'
+                    
+                    Output Format (JSON Only):
+                    {
+                        "intent": "add_client" | "add_reminder" | "delete_client" | "delete_reminder",
+                        "name": string (Client Name, for add/delete),
+                        "company": string,
+                        "role": string,
+                        "id_card": string,
+                        "assets": number,
+                        "hobbies": string,
+                        "remarks": string,
+                        "desc": string (For reminder description or keyword to delete),
+                        "date": string (YYYY-MM-DD),
+                        "amount": number,
+                        "type": "business"|"meeting"|"call"|"other"
+                    }
+                    
+                    Current Date: ${new Date().toISOString().split('T')[0]}.
+                    If date is 'tomorrow', calculate it.
+                    Return ONLY raw JSON. No markdown block.`;
+
+                    if (!apiKey) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalBtnContent;
+                        return app.utils.toast('请先在设置中配置 API Key', 'error');
+                    }
+
+                    const payload = {
+                        model: "deepseek-chat",
+                        messages: [
+                            { role: "system", content: systemPrompt },
+                            { role: "user", content: text }
+                        ],
+                        response_format: {
+                            type: "json_object"
+                        },
+                        stream: false
+                    };
+
+                    try {
+                        const response = await fetch(API_URL, {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${apiKey}`
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.error) throw new Error(data.error.message);
+
+                        let resultText = '';
+                        if (data.choices && data.choices[0].message) {
+                            resultText = data.choices[0].message.content;
+                        } else {
+                            throw new Error("Invalid API Response");
+                        }
+
+                        // Parse JSON (handle potential markdown blocks if API ignores json_object rule, though unlikely with deepseek-chat)
+                        const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+                        if (!jsonMatch) throw new Error("AI output not valid JSON");
+                        
+                        const extractedData = JSON.parse(jsonMatch[0]);
+                        
+                        if (extractedData.intent === 'add_client') {
+                            app.data.addClient(extractedData);
+                            app.utils.toast(`AI: 已添加客户 ${extractedData.name}`);
+                        } else if (extractedData.intent === 'add_reminder') {
+                            if(!extractedData.date) extractedData.date = new Date().toISOString().split('T')[0];
+                            extractedData.status = 'pending'; // Force pending for AI additions
+                            app.data.addReminder(extractedData);
+                            app.utils.toast(`AI: 已添加提醒事项`);
+                        } else if (extractedData.intent === 'delete_client') {
+                            const target = app.state.clients.find(c => c.name.includes(extractedData.name));
+                            if (target) {
+                                app.data.deleteClient(target.id);
+                                app.utils.toast(`AI: 已删除客户 ${target.name}`, 'error');
+                            } else {
+                                app.utils.toast(`AI: 未找到客户 ${extractedData.name}`, 'error');
+                            }
+                        } else if (extractedData.intent === 'delete_reminder') {
+                            const target = app.state.reminders.find(r => r.desc.includes(extractedData.desc));
+                            if (target) {
+                                app.data.deleteReminder(target.id);
+                                app.utils.toast(`AI: 已删除提醒事项`, 'error');
+                            } else {
+                                app.utils.toast(`AI: 未找到相关提醒`, 'error');
+                            }
+                        } else {
+                            app.utils.toast('无法识别意图', 'error');
+                        }
+
+                        document.getElementById('ai-input-text').value = '';
+                        app.modals.close('ai');
+
+                    } catch (error) {
+                        console.error(error);
+                        app.utils.toast('AI 请求失败: ' + error.message, 'error');
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerHTML = originalBtnContent;
+                    }
+                }
+            },
+
+            utils: {
+                toast(msg, type = 'success') {
+                    const toast = document.getElementById('toast');
+                    const icon = document.getElementById('toast-icon');
+                    const text = document.getElementById('toast-message');
+                    
+                    text.innerText = msg;
+                    if (type === 'error') {
+                        icon.className = 'fa-solid fa-circle-exclamation text-red-400 text-lg';
+                    } else {
+                        icon.className = 'fa-solid fa-circle-check text-green-400 text-lg';
+                    }
+
+                    toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+                    setTimeout(() => {
+                        toast.classList.add('opacity-0', 'translate-y-[-20px]');
+                    }, 3000);
+                },
+                formatCurrency(num) {
+                    if (!num) return '¥0';
+                    if (num >= 100000000) return '¥' + (num / 100000000).toFixed(1) + '亿';
+                    if (num >= 10000) return '¥' + (num / 10000).toFixed(1) + '万';
+                    return '¥' + num.toLocaleString();
+                },
+                formatNumberCompact(num) {
+                    if (!num) return '0';
+                    if (num >= 100000000) return (num / 100000000).toFixed(1) + '亿';
+                    if (num >= 10000) return (num / 10000).toFixed(1) + '万';
+                    return num.toLocaleString();
+                },
+                isUrgent(dateStr) {
+                    if (!dateStr) return false;
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    const target = new Date(dateStr);
+                    target.setHours(0,0,0,0);
+                    // Difference in milliseconds
+                    const diffTime = target - today;
+                    // Difference in days (ceil to handle partial days)
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    return diffDays <= 2; // urgent if due within 2 days (or overdue)
+                },
+                checkUrgentAlert() {
+                    const urgentTasks = app.state.reminders.filter(r => 
+                        r.status !== 'completed' && app.utils.isUrgent(r.date)
+                    );
+
+                    if (urgentTasks.length > 0) {
+                        const container = document.getElementById('urgent-list-container');
+                        container.innerHTML = '';
+                        urgentTasks.forEach(t => {
+                            const div = document.createElement('div');
+                            div.className = "bg-slate-700/50 p-3 rounded-xl border border-red-500/20";
+                            div.innerHTML = `
+                                <div class="flex justify-between items-start">
+                                    <h4 class="text-white text-sm font-bold">${t.desc}</h4>
+                                    <span class="text-red-400 text-xs font-bold">${t.date}</span>
+                                </div>
+                                ${t.amount > 0 ? `<p class="text-amber-400 text-xs mt-1">¥${app.utils.formatNumberCompact(t.amount)}</p>` : ''}
+                            `;
+                            container.appendChild(div);
+                        });
+                        document.getElementById('modal-urgent').classList.remove('hidden');
+                    }
+                },
+                addToCalendar(title, dateStr) {
+                    if (!dateStr) return app.utils.toast('无日期，无法添加到日历', 'error');
+                    
+                    // Simple ICS generation
+                    const date = dateStr.replace(/-/g, '');
+                    const icsContent = [
+                        'BEGIN:VCALENDAR',
+                        'VERSION:2.0',
+                        'BEGIN:VEVENT',
+                        `DTSTART;VALUE=DATE:${date}`,
+                        `DTEND;VALUE=DATE:${date}`,
+                        `SUMMARY:${title}`,
+                        'END:VEVENT',
+                        'END:VCALENDAR'
+                    ].join('\n');
+
+                    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.setAttribute('download', 'reminder.ics');
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+        };
+
+        // Global Handlers attached to window
+        window.deleteClient = function(id) {
+            if(confirm('确定删除该客户吗？')) {
+                 app.data.deleteClient(id);
+                 app.utils.toast('客户已删除', 'error');
+            }
+        };
+
+        window.deleteReminder = function(id) {
+            if(confirm('确定删除该提醒吗？')) {
+                 app.data.deleteReminder(id);
+                 app.utils.toast('提醒已删除', 'error');
+            }
+        };
+
+        window.toggleReminderStatus = function(id) {
+            app.data.toggleReminderStatus(id);
+        };
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+    </script>
+</body>
+</html>

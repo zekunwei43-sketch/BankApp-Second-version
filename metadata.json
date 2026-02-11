@@ -1,0 +1,7 @@
+{
+  "name": "Bank CRM PWA",
+  "description": "A professional Bank CRM Progressive Web App with Client Management, Business Reminders, and AI Assistant integration.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
