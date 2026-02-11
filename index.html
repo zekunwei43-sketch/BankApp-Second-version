@@ -34,17 +34,14 @@
         
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 4px;
         }
         ::-webkit-scrollbar-track {
             background: #0f172a; 
         }
         ::-webkit-scrollbar-thumb {
             background: #334155; 
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569; 
+            border-radius: 2px;
         }
 
         .card-enter {
@@ -54,11 +51,6 @@
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-
-        .modal-overlay {
-            background-color: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(4px);
         }
 
         /* Hide number input arrows */
@@ -75,67 +67,72 @@
         .completed-task h4 {
             text-decoration: line-through;
         }
+        
+        /* Safe area for bottom nav on newer iPhones */
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden">
+<body class="h-screen flex flex-col overflow-hidden bg-slate-900 text-white">
 
     <!-- Top Navigation -->
-    <header class="bg-slate-800/80 backdrop-blur-md border-b border-slate-700 px-4 py-3 flex justify-between items-center sticky top-0 z-20">
+    <header class="fixed top-0 left-0 right-0 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex justify-between items-center z-40 h-14">
         <div class="flex items-center gap-2">
             <i class="fa-solid fa-building-columns text-blue-500 text-xl"></i>
             <h1 class="text-lg font-bold tracking-wide">Bank CRM <span class="text-xs font-normal text-slate-400">Pro</span></h1>
         </div>
-        <button id="ai-trigger-btn" class="bg-blue-600 hover:bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/20 transition-all">
+        <button id="ai-trigger-btn" class="bg-blue-600 hover:bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/20 active:scale-90 transition-transform">
             <i class="fa-solid fa-robot text-sm"></i>
         </button>
     </header>
 
     <!-- Main Content Area -->
-    <main class="flex-1 overflow-y-auto pb-24 p-4 scroll-smooth" id="main-container">
+    <main class="flex-1 overflow-y-auto pt-16 pb-24 px-4 scroll-smooth w-full max-w-lg mx-auto" id="main-container">
         
         <!-- View: Dashboard -->
         <section id="view-dashboard" class="space-y-6 card-enter">
             <!-- Stats Cards -->
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm">
-                    <p class="text-slate-400 text-xs mb-1">总管理资产 (Assets)</p>
-                    <h2 class="text-2xl font-bold text-emerald-400" id="dash-total-assets">¥0</h2>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg">
+                    <p class="text-slate-400 text-xs mb-1 uppercase tracking-wider">总管理资产</p>
+                    <h2 class="text-xl font-bold text-emerald-400 truncate" id="dash-total-assets">¥0</h2>
                 </div>
-                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm">
-                    <p class="text-slate-400 text-xs mb-1">客户总数 (Clients)</p>
-                    <h2 class="text-2xl font-bold text-blue-400" id="dash-total-clients">0</h2>
+                <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg">
+                    <p class="text-slate-400 text-xs mb-1 uppercase tracking-wider">客户总数</p>
+                    <h2 class="text-xl font-bold text-blue-400" id="dash-total-clients">0</h2>
                 </div>
             </div>
 
-            <div class="bg-gradient-to-r from-blue-900/40 to-slate-800 p-5 rounded-xl border border-blue-800/50 flex items-center justify-between">
+            <div class="bg-gradient-to-r from-blue-900/30 to-slate-800 p-5 rounded-xl border border-blue-800/30 flex items-center justify-between shadow-lg">
                 <div>
-                    <h3 class="font-bold text-lg text-white">今日待办</h3>
-                    <p class="text-slate-400 text-sm mt-1" id="dash-reminder-count">暂无待办事项</p>
+                    <h3 class="font-bold text-base text-white">今日待办</h3>
+                    <p class="text-slate-400 text-xs mt-1" id="dash-reminder-count">暂无待办事项</p>
                 </div>
-                <div class="bg-blue-500/20 p-3 rounded-full">
-                    <i class="fa-regular fa-bell text-blue-400 text-xl"></i>
+                <div class="bg-blue-500/20 w-10 h-10 rounded-full flex items-center justify-center">
+                    <i class="fa-regular fa-bell text-blue-400 text-lg"></i>
                 </div>
             </div>
 
             <!-- Quick Actions -->
             <div>
-                <h3 class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-3">快捷操作</h3>
-                <div class="grid grid-cols-4 gap-2 text-center">
-                    <button onclick="app.modals.openClient()" class="flex flex-col items-center gap-2 p-3 bg-slate-800 rounded-xl active:scale-95 transition-transform">
+                <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-3">快捷操作</h3>
+                <div class="grid grid-cols-4 gap-3">
+                    <button onclick="app.modals.openClient()" class="flex flex-col items-center gap-2 p-3 bg-slate-800 rounded-xl border border-slate-700 active:bg-slate-700 transition-colors">
                         <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400"><i class="fa-solid fa-user-plus"></i></div>
-                        <span class="text-xs text-slate-300">加客户</span>
+                        <span class="text-[10px] text-slate-300">加客户</span>
                     </button>
-                    <button onclick="app.modals.openReminder()" class="flex flex-col items-center gap-2 p-3 bg-slate-800 rounded-xl active:scale-95 transition-transform">
+                    <button onclick="app.modals.openReminder()" class="flex flex-col items-center gap-2 p-3 bg-slate-800 rounded-xl border border-slate-700 active:bg-slate-700 transition-colors">
                         <div class="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-400"><i class="fa-solid fa-clock"></i></div>
-                        <span class="text-xs text-slate-300">加提醒</span>
+                        <span class="text-[10px] text-slate-300">加提醒</span>
                     </button>
-                    <button onclick="app.speech.start()" class="flex flex-col items-center gap-2 p-3 bg-slate-800 rounded-xl active:scale-95 transition-transform">
+                    <button onclick="app.speech.start()" class="flex flex-col items-center gap-2 p-3 bg-slate-800 rounded-xl border border-slate-700 active:bg-slate-700 transition-colors">
                         <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400"><i class="fa-solid fa-microphone"></i></div>
-                        <span class="text-xs text-slate-300">语音</span>
+                        <span class="text-[10px] text-slate-300">语音</span>
                     </button>
-                    <button onclick="app.nav.to('settings')" class="flex flex-col items-center gap-2 p-3 bg-slate-800 rounded-xl active:scale-95 transition-transform">
-                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-400"><i class="fa-solid fa-gear"></i></div>
-                        <span class="text-xs text-slate-300">设置</span>
+                    <button onclick="app.nav.to('settings')" class="flex flex-col items-center gap-2 p-3 bg-slate-800 rounded-xl border border-slate-700 active:bg-slate-700 transition-colors">
+                        <div class="w-10 h-10 rounded-full bg-slate-700/50 flex items-center justify-center text-slate-400"><i class="fa-solid fa-gear"></i></div>
+                        <span class="text-[10px] text-slate-300">设置</span>
                     </button>
                 </div>
             </div>
@@ -144,59 +141,59 @@
         <!-- View: Clients -->
         <section id="view-clients" class="hidden space-y-4">
             <div class="flex justify-between items-center mb-2">
-                <h2 class="text-xl font-bold">客户列表</h2>
-                <button onclick="app.modals.openClient()" class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-500">+ 新增</button>
+                <h2 class="text-lg font-bold">客户列表</h2>
+                <button onclick="app.modals.openClient()" class="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-blue-500 shadow-md active:scale-95 transition-transform">+ 新增</button>
             </div>
-            <div id="client-list" class="space-y-3 pb-20">
+            <div id="client-list" class="space-y-3">
                 <!-- Client Cards Injected Here -->
             </div>
         </section>
 
         <!-- View: Reminders -->
         <section id="view-reminders" class="hidden space-y-4">
-            <div class="flex flex-col gap-4 mb-2">
+            <div class="flex flex-col gap-3 mb-2">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-xl font-bold">业务提醒</h2>
-                    <button onclick="app.modals.openReminder()" class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-500">+ 新增</button>
+                    <h2 class="text-lg font-bold">业务提醒</h2>
+                    <button onclick="app.modals.openReminder()" class="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-blue-500 shadow-md active:scale-95 transition-transform">+ 新增</button>
                 </div>
                 <!-- Search Bar -->
                 <div class="relative">
-                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                     <input type="text" id="reminder-search-input" oninput="app.render.reminders()" placeholder="搜索业务内容..." 
-                        class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                        class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                 </div>
             </div>
 
-            <div id="reminder-list" class="space-y-3 pb-20">
+            <div id="reminder-list" class="space-y-3">
                 <!-- Reminder Cards Injected Here -->
             </div>
         </section>
 
         <!-- View: Settings -->
         <section id="view-settings" class="hidden space-y-6">
-            <h2 class="text-xl font-bold mb-4">系统设置</h2>
+            <h2 class="text-lg font-bold mb-4">系统设置</h2>
             
-            <div class="bg-slate-800 rounded-xl border border-slate-700 p-4 space-y-4">
-                <h3 class="font-semibold text-blue-400 flex items-center gap-2">
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-5 space-y-4 shadow-lg">
+                <h3 class="font-bold text-blue-400 flex items-center gap-2 text-sm">
                     <i class="fa-solid fa-brain"></i> AI 配置 (DeepSeek)
                 </h3>
                 
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">DeepSeek API Key</label>
                     <input type="password" id="setting-api-key" placeholder="Paste your DeepSeek Key here (sk-...)" 
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-blue-500">
+                        class="w-full bg-slate-700 text-white border border-slate-600 rounded-lg p-3 mt-1 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
                 </div>
-                <button onclick="app.settings.save()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-medium transition-colors">
+                <button onclick="app.settings.save()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg text-sm font-bold shadow-lg shadow-blue-600/20 active:scale-95 transition-all">
                     保存配置
                 </button>
             </div>
 
-            <div class="bg-slate-800 rounded-xl border border-slate-700 p-4 space-y-4">
-                <h3 class="font-semibold text-slate-200">数据管理</h3>
-                <button onclick="app.data.seed()" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 py-2 rounded-lg text-sm transition-colors">
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-5 space-y-4 shadow-lg">
+                <h3 class="font-bold text-slate-200 text-sm">数据管理</h3>
+                <button onclick="app.data.seed()" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 py-3 rounded-lg text-sm font-medium transition-colors border border-slate-600">
                     重置并填入测试数据
                 </button>
-                <button onclick="localStorage.clear(); window.location.reload()" class="w-full bg-red-900/30 hover:bg-red-900/50 text-red-400 py-2 rounded-lg text-sm transition-colors border border-red-900/50">
+                <button onclick="localStorage.clear(); window.location.reload()" class="w-full bg-red-900/20 hover:bg-red-900/30 text-red-400 py-3 rounded-lg text-sm font-medium transition-colors border border-red-900/30">
                     清除所有数据
                 </button>
             </div>
@@ -205,39 +202,39 @@
     </main>
 
     <!-- Bottom Navigation -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-slate-800/95 backdrop-blur-lg border-t border-slate-700 pb-safe pt-2 z-30">
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 z-50 pb-safe">
         <div class="flex justify-around items-center h-16">
-            <button onclick="app.nav.to('dashboard')" class="nav-btn active flex flex-col items-center gap-1 w-full text-blue-500" data-target="dashboard">
-                <i class="fa-solid fa-chart-pie text-xl mb-0.5"></i>
-                <span class="text-[10px]">概览</span>
+            <button onclick="app.nav.to('dashboard')" class="nav-btn active flex flex-col items-center gap-1 w-full h-full justify-center text-blue-500" data-target="dashboard">
+                <i class="fa-solid fa-chart-pie text-lg"></i>
+                <span class="text-[10px] font-medium">概览</span>
             </button>
-            <button onclick="app.nav.to('clients')" class="nav-btn flex flex-col items-center gap-1 w-full text-slate-500 hover:text-slate-300" data-target="clients">
-                <i class="fa-solid fa-users text-xl mb-0.5"></i>
-                <span class="text-[10px]">客户</span>
+            <button onclick="app.nav.to('clients')" class="nav-btn flex flex-col items-center gap-1 w-full h-full justify-center text-slate-500 hover:text-slate-300" data-target="clients">
+                <i class="fa-solid fa-users text-lg"></i>
+                <span class="text-[10px] font-medium">客户</span>
             </button>
-            <button onclick="app.nav.to('reminders')" class="nav-btn flex flex-col items-center gap-1 w-full text-slate-500 hover:text-slate-300" data-target="reminders">
-                <i class="fa-solid fa-list-check text-xl mb-0.5"></i>
-                <span class="text-[10px]">提醒</span>
+            <button onclick="app.nav.to('reminders')" class="nav-btn flex flex-col items-center gap-1 w-full h-full justify-center text-slate-500 hover:text-slate-300" data-target="reminders">
+                <i class="fa-solid fa-list-check text-lg"></i>
+                <span class="text-[10px] font-medium">提醒</span>
             </button>
-            <button onclick="app.nav.to('settings')" class="nav-btn flex flex-col items-center gap-1 w-full text-slate-500 hover:text-slate-300" data-target="settings">
-                <i class="fa-solid fa-gear text-xl mb-0.5"></i>
-                <span class="text-[10px]">设置</span>
+            <button onclick="app.nav.to('settings')" class="nav-btn flex flex-col items-center gap-1 w-full h-full justify-center text-slate-500 hover:text-slate-300" data-target="settings">
+                <i class="fa-solid fa-gear text-lg"></i>
+                <span class="text-[10px] font-medium">设置</span>
             </button>
         </div>
     </nav>
 
     <!-- Modal: Urgent Alert (App Launch) -->
-    <div id="modal-urgent" class="fixed inset-0 z-[100] hidden bg-slate-900/95 backdrop-blur-sm flex flex-col items-center justify-center p-6">
-        <div class="bg-slate-800 w-full max-w-md rounded-2xl border border-red-500/50 shadow-2xl shadow-red-900/20 overflow-hidden animate-[slideUp_0.4s_ease-out]">
-            <div class="bg-red-900/30 p-4 border-b border-red-900/50 flex items-center gap-3">
+    <div id="modal-urgent" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="if(event.target === this) document.getElementById('modal-urgent').classList.add('hidden')">
+        <div class="bg-slate-800 w-full max-w-sm rounded-xl border border-red-500/50 shadow-2xl shadow-red-900/30 overflow-hidden animate-[slideUp_0.4s_ease-out]">
+            <div class="bg-red-900/20 p-4 border-b border-red-900/50 flex items-center gap-3">
                 <i class="fa-solid fa-triangle-exclamation text-red-500 text-xl"></i>
                 <h3 class="font-bold text-red-100 text-lg">紧急业务提醒</h3>
             </div>
-            <div class="p-5 max-h-[60vh] overflow-y-auto space-y-3" id="urgent-list-container">
+            <div class="p-5 max-h-[50vh] overflow-y-auto space-y-3" id="urgent-list-container">
                 <!-- Urgent Items injected here -->
             </div>
             <div class="p-4 bg-slate-800 border-t border-slate-700">
-                <button onclick="document.getElementById('modal-urgent').classList.add('hidden')" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold text-sm shadow-lg shadow-red-600/20 transition-all">
+                <button onclick="document.getElementById('modal-urgent').classList.add('hidden')" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold text-sm shadow-lg shadow-red-600/20 transition-all active:scale-95">
                     我知道了
                 </button>
             </div>
@@ -245,82 +242,80 @@
     </div>
 
     <!-- Modal: Client Edit/Add -->
-    <div id="modal-client" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 modal-overlay" onclick="app.modals.close('client')"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="px-5 py-4 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
+    <div id="modal-client" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="if(event.target === this) app.modals.close('client')">
+        <div class="bg-slate-800 w-full max-w-sm rounded-xl shadow-2xl border border-slate-700 flex flex-col max-h-[85vh] animate-[slideUp_0.3s_ease-out]">
+            <div class="px-5 py-4 border-b border-slate-700 flex justify-between items-center">
                 <h3 class="text-lg font-bold text-white" id="modal-client-title">编辑客户</h3>
-                <button onclick="app.modals.close('client')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <button onclick="app.modals.close('client')" class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="p-5 overflow-y-auto space-y-4 custom-scrollbar">
+            <div class="p-5 overflow-y-auto custom-scrollbar">
                 <input type="hidden" id="client-id">
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3 mb-3">
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">姓名 <span class="text-red-400">*</span></label>
-                        <input type="text" id="client-name" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                        <label class="block text-xs text-slate-400 mb-1 ml-1">姓名 <span class="text-red-400">*</span></label>
+                        <input type="text" id="client-name" class="w-full bg-slate-700 text-white border border-slate-600 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">职位</label>
-                        <input type="text" id="client-role" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                        <label class="block text-xs text-slate-400 mb-1 ml-1">职位</label>
+                        <input type="text" id="client-role" class="w-full bg-slate-700 text-white border border-slate-600 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">公司名称</label>
-                    <input type="text" id="client-company" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                <div class="mb-3">
+                    <label class="block text-xs text-slate-400 mb-1 ml-1">公司名称</label>
+                    <input type="text" id="client-company" class="w-full bg-slate-700 text-white border border-slate-600 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
                 </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">身份证号</label>
-                    <input type="text" id="client-idcard" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                <div class="mb-3">
+                    <label class="block text-xs text-slate-400 mb-1 ml-1">身份证号</label>
+                    <input type="text" id="client-idcard" class="w-full bg-slate-700 text-white border border-slate-600 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
                 </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">资金资产 (¥)</label>
-                    <input type="number" id="client-assets" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                <div class="mb-3">
+                    <label class="block text-xs text-slate-400 mb-1 ml-1">资金资产 (¥)</label>
+                    <input type="number" id="client-assets" class="w-full bg-slate-700 text-white border border-slate-600 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
                 </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">喜好</label>
-                    <input type="text" id="client-hobbies" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                <div class="mb-3">
+                    <label class="block text-xs text-slate-400 mb-1 ml-1">喜好</label>
+                    <input type="text" id="client-hobbies" class="w-full bg-slate-700 text-white border border-slate-600 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
                 </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">备注</label>
-                    <textarea id="client-remarks" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none"></textarea>
+                <div class="mb-3">
+                    <label class="block text-xs text-slate-400 mb-1 ml-1">备注</label>
+                    <textarea id="client-remarks" rows="3" class="w-full bg-slate-700 text-white border border-slate-600 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all"></textarea>
                 </div>
             </div>
-            <div class="p-4 border-t border-slate-700 bg-slate-800/50 flex gap-3">
-                <button type="button" id="btn-delete-client" class="hidden px-4 py-2 bg-red-900/20 text-red-400 rounded-lg text-sm border border-red-900/50 hover:bg-red-900/40">删除</button>
+            <div class="p-4 border-t border-slate-700 flex gap-3 bg-slate-800 rounded-b-xl">
+                <button type="button" id="btn-delete-client" class="hidden px-4 py-2.5 bg-red-900/20 text-red-400 rounded-lg text-sm font-medium border border-red-900/50 hover:bg-red-900/40">删除</button>
                 <div class="flex-1"></div>
-                <button type="button" onclick="app.modals.close('client')" class="px-4 py-2 text-slate-300 text-sm hover:text-white">取消</button>
-                <button type="button" onclick="app.data.saveClientFromModal()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-blue-600/20">保存</button>
+                <button type="button" onclick="app.modals.close('client')" class="px-5 py-2.5 text-slate-300 text-sm font-medium hover:text-white">取消</button>
+                <button type="button" onclick="app.data.saveClientFromModal()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-600/20 active:scale-95 transition-all">保存</button>
             </div>
         </div>
     </div>
 
     <!-- Modal: Reminder Edit/Add -->
-    <div id="modal-reminder" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 modal-overlay" onclick="app.modals.close('reminder')"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 overflow-hidden flex flex-col">
+    <div id="modal-reminder" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="if(event.target === this) app.modals.close('reminder')">
+        <div class="bg-slate-800 w-full max-w-sm rounded-xl shadow-2xl border border-slate-700 flex flex-col max-h-[85vh] animate-[slideUp_0.3s_ease-out]">
             <div class="px-5 py-4 border-b border-slate-700 flex justify-between items-center">
                 <h3 class="text-lg font-bold text-white" id="modal-reminder-title">新增提醒</h3>
-                <button onclick="app.modals.close('reminder')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <button onclick="app.modals.close('reminder')" class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="p-5 space-y-4">
+            <div class="p-5 space-y-3">
                 <input type="hidden" id="reminder-id">
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">事项描述 <span class="text-red-400">*</span></label>
-                    <input type="text" id="reminder-desc" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                    <label class="block text-xs text-slate-400 mb-1 ml-1">事项描述 <span class="text-red-400">*</span></label>
+                    <input type="text" id="reminder-desc" class="w-full bg-slate-700 text-white border border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">日期</label>
-                        <input type="date" id="reminder-date" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none text-white [color-scheme:dark]">
+                        <label class="block text-xs text-slate-400 mb-1 ml-1">日期</label>
+                        <input type="date" id="reminder-date" class="w-full bg-slate-700 text-white border border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all [color-scheme:dark]">
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">金额 (CNY)</label>
-                        <input type="number" id="reminder-amount" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
+                        <label class="block text-xs text-slate-400 mb-1 ml-1">金额 (CNY)</label>
+                        <input type="number" id="reminder-amount" class="w-full bg-slate-700 text-white border border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">类型</label>
-                    <select id="reminder-type" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none text-white">
+                    <label class="block text-xs text-slate-400 mb-1 ml-1">类型</label>
+                    <select id="reminder-type" class="w-full bg-slate-700 text-white border border-slate-600 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all appearance-none">
                         <option value="business">业务办理</option>
                         <option value="meeting">客户会议</option>
                         <option value="call">电话回访</option>
@@ -328,41 +323,40 @@
                     </select>
                 </div>
             </div>
-            <div class="p-4 border-t border-slate-700 flex gap-3">
-                <button type="button" id="btn-delete-reminder" class="hidden px-4 py-2 bg-red-900/20 text-red-400 rounded-lg text-sm border border-red-900/50 hover:bg-red-900/40">删除</button>
+            <div class="p-4 border-t border-slate-700 flex gap-3 bg-slate-800 rounded-b-xl">
+                <button type="button" id="btn-delete-reminder" class="hidden px-4 py-2.5 bg-red-900/20 text-red-400 rounded-lg text-sm font-medium border border-red-900/50 hover:bg-red-900/40">删除</button>
                 <div class="flex-1"></div>
-                <button type="button" onclick="app.modals.close('reminder')" class="px-4 py-2 text-slate-300 text-sm hover:text-white">取消</button>
-                <button type="button" onclick="app.data.saveReminderFromModal()" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-blue-600/20">保存</button>
+                <button type="button" onclick="app.modals.close('reminder')" class="px-5 py-2.5 text-slate-300 text-sm font-medium hover:text-white">取消</button>
+                <button type="button" onclick="app.data.saveReminderFromModal()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-600/20 active:scale-95 transition-all">保存</button>
             </div>
         </div>
     </div>
 
     <!-- Modal: AI Assistant -->
-    <div id="modal-ai" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 modal-overlay" onclick="app.modals.close('ai')"></div>
-        <div class="absolute bottom-0 left-0 right-0 bg-slate-850 rounded-t-3xl shadow-2xl border-t border-slate-700 p-6 pb-safe animate-[slideUp_0.3s_ease-out]">
+    <div id="modal-ai" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="if(event.target === this) app.modals.close('ai')">
+        <div class="bg-slate-800 w-full max-w-sm rounded-2xl shadow-2xl border border-slate-700 p-6 flex flex-col animate-[slideUp_0.3s_ease-out]">
             <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
                         <i class="fa-solid fa-sparkles text-white text-xs"></i>
                     </div>
-                    <h3 class="font-bold text-lg">AI 助手</h3>
+                    <h3 class="font-bold text-lg text-white">AI 助手</h3>
                 </div>
-                <button onclick="app.modals.close('ai')" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="app.modals.close('ai')" class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors"><i class="fa-solid fa-xmark"></i></button>
             </div>
             
-            <div class="bg-slate-900 rounded-xl p-3 border border-slate-700 mb-4">
-                <textarea id="ai-input-text" rows="3" placeholder="请说话或输入... (例如: 删除客户王建国)" class="w-full bg-transparent text-white text-sm focus:outline-none resize-none placeholder-slate-600"></textarea>
+            <div class="bg-slate-900 rounded-xl p-4 border border-slate-700 mb-5 shadow-inner">
+                <textarea id="ai-input-text" rows="3" placeholder="请说话或输入... (例如: 删除客户王建国)" class="w-full bg-transparent text-white text-sm focus:outline-none resize-none placeholder-slate-600 leading-relaxed"></textarea>
             </div>
 
             <div class="flex items-center justify-between">
                 <button id="btn-mic" onmousedown="app.speech.startRec()" onmouseup="app.speech.stopRec()" ontouchstart="app.speech.startRec()" ontouchend="app.speech.stopRec()" 
-                    class="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800 border border-slate-700 text-slate-300 active:bg-blue-900/50 active:border-blue-500 active:text-blue-400 transition-all select-none">
+                    class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-700 border border-slate-600 text-slate-300 active:bg-blue-900/50 active:border-blue-500 active:text-blue-400 transition-all select-none">
                     <i class="fa-solid fa-microphone"></i>
-                    <span class="text-xs font-medium" id="mic-status">按住说话</span>
+                    <span class="text-xs font-bold" id="mic-status">按住说话</span>
                 </button>
                 
-                <button onclick="app.ai.process()" id="btn-ai-send" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg shadow-blue-600/20 flex items-center gap-2 transition-all">
+                <button onclick="app.ai.process()" id="btn-ai-send" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-blue-600/20 flex items-center gap-2 active:scale-95 transition-all">
                     <span>发送指令</span>
                     <i class="fa-solid fa-paper-plane text-xs"></i>
                 </button>
@@ -371,9 +365,9 @@
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-600 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none z-[60]">
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-600 text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none z-[100] whitespace-nowrap">
         <i class="fa-solid fa-circle-check text-green-400 text-lg" id="toast-icon"></i>
-        <span class="text-sm font-medium" id="toast-message">Operation Successful</span>
+        <span class="text-sm font-bold" id="toast-message">Operation Successful</span>
     </div>
 
     <!-- Application Logic -->
@@ -407,6 +401,7 @@
                             app.modals.close('client');
                             app.modals.close('reminder');
                             app.modals.close('ai');
+                            document.getElementById('modal-urgent').classList.add('hidden');
                         }
                     });
                 }
@@ -539,6 +534,9 @@
                     if(!data.desc) return app.utils.toast('请输入描述', 'error');
 
                     if (id) {
+                        // Preserve status
+                        const existing = app.state.reminders.find(r => r.id == id);
+                        if(existing) data.status = existing.status;
                         app.data.updateReminder(id, data);
                         app.utils.toast('提醒已更新');
                     } else {
@@ -672,21 +670,21 @@
                     list.innerHTML = '';
                     app.state.clients.forEach(c => {
                         const div = document.createElement('div');
-                        div.className = 'bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-sm active:bg-slate-700 transition-colors cursor-pointer relative';
+                        div.className = 'bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg active:bg-slate-700 transition-colors cursor-pointer relative mb-3';
                         div.onclick = () => app.modals.openClient(c.id);
                         div.innerHTML = `
                             <div class="flex justify-between items-start">
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <h3 class="font-bold text-lg text-white">${c.name}</h3>
-                                        ${c.role ? `<span class="bg-blue-900/50 text-blue-400 text-[10px] px-2 py-0.5 rounded-full border border-blue-900">${c.role}</span>` : ''}
+                                        ${c.role ? `<span class="bg-blue-900/40 text-blue-400 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-500/30">${c.role}</span>` : ''}
                                     </div>
-                                    <p class="text-slate-400 text-xs">${c.company || '未填写公司信息'}</p>
+                                    <p class="text-slate-400 text-sm font-medium">${c.company || '未填写公司信息'}</p>
                                 </div>
-                                <div class="flex flex-col items-end gap-2">
-                                    <p class="text-emerald-400 font-medium text-sm">${app.utils.formatCurrency(c.assets)}</p>
-                                    <button onclick="event.stopPropagation(); window.deleteClient(${c.id})" class="text-slate-600 hover:text-red-400 z-10 p-1">
-                                        <i class="fa-solid fa-trash-can"></i>
+                                <div class="flex flex-col items-end gap-3">
+                                    <p class="text-emerald-400 font-bold text-base">${app.utils.formatCurrency(c.assets)}</p>
+                                    <button onclick="event.stopPropagation(); window.deleteClient(${c.id})" class="text-slate-500 hover:text-red-400 p-2 -mr-2 active:scale-110 transition-transform">
+                                        <i class="fa-solid fa-trash-can text-lg"></i>
                                     </button>
                                 </div>
                             </div>
@@ -718,7 +716,7 @@
                         const isUrgent = app.utils.isUrgent(r.date) && !isCompleted;
 
                         const div = document.createElement('div');
-                        let classes = 'bg-slate-800 p-4 rounded-xl border shadow-sm flex flex-col gap-2 relative transition-all ';
+                        let classes = 'bg-slate-800 p-4 rounded-xl border shadow-lg flex flex-col gap-2 relative transition-all mb-3 ';
                         
                         if (isCompleted) {
                             classes += 'border-slate-700 completed-task';
@@ -737,40 +735,40 @@
 
                         div.innerHTML = `
                             <div class="flex justify-between items-start" onclick="app.modals.openReminder(${r.id})">
-                                <div class="flex items-start gap-3">
-                                    <div class="mt-1 w-8 h-8 rounded-full ${iconBg} flex items-center justify-center ${iconColor}">
-                                        <i class="fa-solid fa-${icon} text-xs"></i>
+                                <div class="flex items-start gap-4">
+                                    <div class="mt-1 w-10 h-10 rounded-full ${iconBg} flex items-center justify-center ${iconColor} shrink-0">
+                                        <i class="fa-solid fa-${icon} text-sm"></i>
                                     </div>
                                     <div>
-                                        <h4 class="font-bold text-slate-200 text-sm leading-snug mb-1 ${isUrgent ? 'text-red-400' : ''}">
-                                            ${isUrgent ? '<span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded mr-1">紧急</span>' : ''}
+                                        <h4 class="font-bold text-white text-base leading-snug mb-1 ${isUrgent ? 'text-red-400' : ''}">
+                                            ${isUrgent ? '<span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded mr-1 align-middle">紧急</span>' : ''}
                                             ${r.desc}
                                         </h4>
-                                        <p class="text-slate-500 text-xs">${r.date || '无日期'}</p>
+                                        <p class="text-slate-400 text-sm font-medium">${r.date || '无日期'}</p>
                                     </div>
                                 </div>
-                                <div class="flex flex-col items-end gap-2">
-                                    ${r.amount > 0 ? `<div class="text-right"><span class="block font-bold text-amber-400 text-sm">¥${app.utils.formatNumberCompact(r.amount)}</span></div>` : ''}
-                                    <div class="flex items-center gap-2">
-                                        <button onclick="event.stopPropagation(); window.toggleReminderStatus(${r.id})" class="${isCompleted ? 'text-green-500' : 'text-slate-600 hover:text-green-400'} z-10 p-1">
-                                            <i class="fa-solid ${isCompleted ? 'fa-circle-check' : 'fa-circle'} text-lg"></i>
+                                <div class="flex flex-col items-end gap-3 shrink-0">
+                                    ${r.amount > 0 ? `<div class="text-right"><span class="block font-bold text-amber-400 text-base">¥${app.utils.formatNumberCompact(r.amount)}</span></div>` : ''}
+                                    <div class="flex items-center gap-3">
+                                        <button onclick="event.stopPropagation(); window.toggleReminderStatus(${r.id})" class="${isCompleted ? 'text-green-500' : 'text-slate-600 hover:text-green-400'} p-2 -mr-1 active:scale-110 transition-transform">
+                                            <i class="fa-solid ${isCompleted ? 'fa-circle-check' : 'fa-circle'} text-xl"></i>
                                         </button>
-                                        <button onclick="event.stopPropagation(); window.deleteReminder(${r.id})" class="text-slate-600 hover:text-red-400 z-10 p-1">
-                                            <i class="fa-solid fa-trash-can"></i>
+                                        <button onclick="event.stopPropagation(); window.deleteReminder(${r.id})" class="text-slate-600 hover:text-red-400 p-2 -mr-2 active:scale-110 transition-transform">
+                                            <i class="fa-solid fa-trash-can text-xl"></i>
                                         </button>
                                     </div>
                                 </div>
                             </div>
                             ${!isCompleted ? `
-                            <div class="border-t border-slate-700/50 pt-2 mt-1 flex justify-end">
-                                <button onclick="app.utils.addToCalendar('${r.desc}', '${r.date}')" class="text-xs text-blue-400 flex items-center gap-1 px-2 py-1 hover:bg-slate-700 rounded transition-colors">
+                            <div class="border-t border-slate-700/50 pt-3 mt-1 flex justify-end">
+                                <button onclick="app.utils.addToCalendar('${r.desc}', '${r.date}')" class="text-xs text-blue-400 flex items-center gap-1 px-3 py-1.5 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition-colors">
                                     <i class="fa-regular fa-calendar-plus"></i> 加入日历
                                 </button>
                             </div>` : ''}
                         `;
                         list.appendChild(div);
                     });
-                    if (items.length === 0) list.innerHTML = `<div class="text-center text-slate-500 py-10">暂无提醒</div>`;
+                    if (items.length === 0) list.innerHTML = `<div class="text-center text-slate-500 py-10 text-sm">暂无提醒</div>`;
                 }
             },
 
